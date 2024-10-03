@@ -1,0 +1,9 @@
+my\unifi\eset\keycloak\attributes\verification\jpa\TestingJpaEntityProvider.class
+my\unifi\eset\keycloak\attributes\verification\jpa\UAVerificationEntity.class
+my\unifi\eset\keycloak\attributes\verification\VerifyAttributeRequiredActionProvider.class
+my\unifi\eset\keycloak\attributes\verification\EntityListener.class
+my\unifi\eset\keycloak\attributes\verification\jpa\UAVerificationStatus.class
+my\unifi\eset\keycloak\attributes\verification\FreemarkerTemplateRenderer.class
+my\unifi\eset\keycloak\attributes\verification\jpa\TestingJpaEntityProviderFactory.class
+my\unifi\eset\keycloak\attributes\verification\jpa\PiiDataEncryptionValidatorProvider.class
+my\unifi\eset\keycloak\attributes\verification\VerifyAttributeRequiredActionProviderFactory.class
