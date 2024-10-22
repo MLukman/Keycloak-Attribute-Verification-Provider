@@ -18,8 +18,8 @@ import org.keycloak.models.jpa.entities.UserEntity;
 @Entity
 @Table(name = "USER_ATTRIBUTE_VERIFICATION")
 @NamedQueries({
-    @NamedQuery(name = "getPendingRecordsByUser", query = "SELECT v FROM UAVerificationEntity v WHERE v.user = :user AND v.statusValue < 99 ORDER BY v.createdTimestamp DESC"),
-    @NamedQuery(name = "getAllRecordsByUserAndAttributeName", query = "SELECT v FROM UAVerificationEntity v WHERE v.user = :user AND v.attributeName = :attributeName ORDER BY v.createdTimestamp DESC"),
+    @NamedQuery(name = "getPendingRecordsByUser", query = "SELECT v FROM UAVerificationEntity v WHERE v.user = :user AND v.statusValue < 99 ORDER BY v.createdTimestamp ASC"),
+    @NamedQuery(name = "getAllRecordsByUserAndAttributeName", query = "SELECT v FROM UAVerificationEntity v WHERE v.user = :user AND v.attributeName = :attributeName ORDER BY v.createdTimestamp DESC")
 })
 public class UAVerificationEntity {
 
@@ -37,7 +37,7 @@ public class UAVerificationEntity {
     @Column(name = "RESULT_ATTRIBUTE_NAME", length = 255)
     protected String resultAttributeName;
 
-    @Column(name = "CHALLENGE_VALUE", length = 255)
+    @Column(name = "CHALLENGE_VALUE", columnDefinition = "TEXT")
     protected String challengeValue;
 
     @Column(name = "STATUS_VALUE")
@@ -118,6 +118,10 @@ public class UAVerificationEntity {
 
     public void setChallengeValue(String challengeValue) {
         this.challengeValue = challengeValue;
+    }
+
+    public UserAttributeEntity getAttributeEntity() {
+        return user.getAttributes().stream().filter((t) -> t.getName().equalsIgnoreCase(attributeName)).findFirst().orElse(null);
     }
 
     @Override

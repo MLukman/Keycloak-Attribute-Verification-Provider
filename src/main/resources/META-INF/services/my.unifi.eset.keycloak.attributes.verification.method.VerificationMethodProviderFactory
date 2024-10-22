@@ -1,0 +1,2 @@
+my.unifi.eset.keycloak.attributes.verification.method.email.RealmEmailVerificationMethodProviderFactory
+my.unifi.eset.keycloak.attributes.verification.method.sms.SmsVerificationMethodProviderFactory
