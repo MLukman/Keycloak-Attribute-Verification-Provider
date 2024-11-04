@@ -1,6 +1,5 @@
 package my.unifi.eset.keycloak.attributes.verification.method.sms;
 
-import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -23,7 +22,7 @@ public class SmsVerificationMethod implements VerificationMethod {
     }
 
     @Override
-    public VerificationChallenge initiate(UserAttributeEntity uae, UPAttribute upa) {
+    public VerificationChallenge initiate(UserAttributeEntity uae, UPAttribute upa) throws Exception {
         VerificationChallenge verificationChallenge = new VerificationChallenge();
         String message = "[RM0] OTP "
                 + verificationChallenge.getChallengeValue()
@@ -58,12 +57,7 @@ public class SmsVerificationMethod implements VerificationMethod {
         if (smsGatewayContenTypeHttpHeader != null && !smsGatewayContenTypeHttpHeader.isBlank()) {
             requestBuilder.setHeader("Content-Type", smsGatewayContenTypeHttpHeader);
         }
-        try {
-            HttpResponse<String> response = HttpClient.newHttpClient().send(requestBuilder.build(), HttpResponse.BodyHandlers.ofString());
-        } catch (IOException | InterruptedException ex) {
-            //Logger.getLogger(SmsVerificationMethod.class.getName()).log(Level.SEVERE, null, ex);
-            return null;
-        }
+        HttpClient.newHttpClient().send(requestBuilder.build(), HttpResponse.BodyHandlers.ofString());
         return verificationChallenge;
     }
 

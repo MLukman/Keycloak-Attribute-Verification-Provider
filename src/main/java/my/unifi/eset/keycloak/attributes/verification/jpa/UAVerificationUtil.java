@@ -43,10 +43,11 @@ public class UAVerificationUtil {
                 });
     }
 
-    public void insertNewUserAttributeVerificationEntity(UserEntity user, String attributeName, String resultAttributeName) {
+    public UAVerificationEntity insertNewUserAttributeVerificationEntity(UserEntity user, String attributeName, String resultAttributeName) {
         UAVerificationEntity uave = new UAVerificationEntity(KeycloakModelUtils.generateId(), user, attributeName);
         uave.setResultAttributeName(resultAttributeName);
         em.merge(uave);
+        return uave;
     }
 
     public UAVerificationEntity getPendingVerificationEntity(UserEntity user) {

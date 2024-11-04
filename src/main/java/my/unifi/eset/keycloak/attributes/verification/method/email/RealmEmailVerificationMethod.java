@@ -1,7 +1,6 @@
 package my.unifi.eset.keycloak.attributes.verification.method.email;
 
 import my.unifi.eset.keycloak.attributes.verification.method.VerificationChallenge;
-import org.keycloak.email.EmailException;
 import org.keycloak.email.EmailSenderProvider;
 import org.keycloak.models.KeycloakSession;
 import my.unifi.eset.keycloak.attributes.verification.method.VerificationMethod;
@@ -17,23 +16,19 @@ public class RealmEmailVerificationMethod implements VerificationMethod {
     }
 
     @Override
-    public VerificationChallenge initiate(UserAttributeEntity uae, UPAttribute upa) {
-        try {
-            VerificationChallenge verificationChallenge = new VerificationChallenge();
-            String message = "To verify your "
-                    + upa.getDisplayName()
-                    + ", please respond the challenge using the following OTP: "
-                    + verificationChallenge.getChallengeValue();
-            session.getProvider(EmailSenderProvider.class).send(
-                    session.getContext().getRealm().getSmtpConfig(),
-                    uae.getValue(),
-                    session.getContext().getRealm().getDisplayName() + ": Verify your " + upa.getDisplayName(),
-                    message,
-                    message);
-            return verificationChallenge;
-        } catch (EmailException ex) {
-            return null;
-        }
+    public VerificationChallenge initiate(UserAttributeEntity uae, UPAttribute upa) throws Exception {
+        VerificationChallenge verificationChallenge = new VerificationChallenge();
+        String message = "To verify your "
+                + upa.getDisplayName()
+                + ", please respond the challenge using the following OTP: "
+                + verificationChallenge.getChallengeValue();
+        session.getProvider(EmailSenderProvider.class).send(
+                session.getContext().getRealm().getSmtpConfig(),
+                uae.getValue(),
+                session.getContext().getRealm().getDisplayName() + ": Verify your " + upa.getDisplayName(),
+                message,
+                message);
+        return verificationChallenge;
     }
 
     @Override

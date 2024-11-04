@@ -5,8 +5,9 @@ import java.util.Map;
 import java.util.Set;
 import my.unifi.eset.keycloak.attributes.verification.UAVerificationRequiredActionFactory;
 import my.unifi.eset.keycloak.attributes.verification.UAVerificationValidatorProvider;
+import my.unifi.eset.keycloak.attributes.verification.jpa.UAVerificationEntity;
 import my.unifi.eset.keycloak.attributes.verification.jpa.UAVerificationUtil;
-import static org.hibernate.query.results.ResultsHelper.attributeName;
+import org.jboss.logging.Logger;
 import org.keycloak.Config;
 import org.keycloak.events.Event;
 import org.keycloak.events.EventListenerProvider;
@@ -20,6 +21,8 @@ import org.keycloak.models.jpa.entities.UserEntity;
 import org.keycloak.utils.KeycloakSessionUtil;
 
 public class EventListener implements EventListenerProvider, EventListenerProviderFactory {
+
+    private static final Logger logger = Logger.getLogger(EventListener.class);
 
     protected enum Action {
         ADD,
@@ -79,14 +82,17 @@ public class EventListener implements EventListenerProvider, EventListenerProvid
                 util.cleanupAttributeUAVerificationEntities(userEntity, attributeName);
                 if (attributeAction.getValue() == Action.ADD) {
                     // insert record into USER_ATTRIBUTE_VERIFICATION table
-                    util.insertNewUserAttributeVerificationEntity(userEntity, attributeName, UAVerificationValidatorProvider.getResultAttribute(session, attributeName));
+                    UAVerificationEntity uav = util.insertNewUserAttributeVerificationEntity(userEntity, attributeName, UAVerificationValidatorProvider.getResultAttribute(session, attributeName));
+                    logger.debugf("User: %s, Attribute: %s, Event: %s, Status: %s", uav.getUser().getUsername(), uav.getAttributeName(), "USER_ATTRIBUTE_VERIFICATION", "Inserted");
                 }
             }
         }
 
-        if (null != util.getPendingVerificationEntity(userEntity)) {
+        UAVerificationEntity uav;
+        if (null != (uav = util.getPendingVerificationEntity(userEntity))) {
             // activate required action to show form to user
             user.addRequiredAction(UAVerificationRequiredActionFactory.ID);
+            logger.debugf("User: %s, Attribute: %s, Event: %s, Status: %s", uav.getUser().getUsername(), uav.getAttributeName(), "REQUIRED_ACTION", "Added");
         }
     }
 

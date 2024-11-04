@@ -43,7 +43,7 @@ public class UAVerificationEntityProvider implements JpaEntityProviderFactory, J
 
     @Override
     public String getChangelogLocation() {
-        return "META-INF/changelog.xml";
+        return "META-INF/user_attribute_verification.xml";
     }
 
     @Override

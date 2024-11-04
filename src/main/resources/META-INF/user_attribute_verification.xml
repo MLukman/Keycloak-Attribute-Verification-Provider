@@ -1,6 +1,6 @@
 <?xml version="1.1" encoding="UTF-8" standalone="no"?>
 <databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog" xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext" xmlns:pro="http://www.liquibase.org/xml/ns/pro" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd http://www.liquibase.org/xml/ns/pro http://www.liquibase.org/xml/ns/pro/liquibase-pro-latest.xsd http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
-    <changeSet author="liquibase (generated)" id="1723549209743-1">
+    <changeSet author="liquibase (generated)" id="20241104-1">
         <createTable tableName="USER_ATTRIBUTE_VERIFICATION">
             <column name="ID" type="VARCHAR(36)">
                 <constraints nullable="false" primaryKey="true"/>
@@ -27,12 +27,12 @@
             <column name="STATUS_TIMESTAMP" type="BIGINT"/>
         </createTable>
     </changeSet>
-    <changeSet author="liquibase (generated)" id="1723549209743-2">
+    <changeSet author="liquibase (generated)" id="20241104-2">
         <createIndex associatedWith="" indexName="USER_ID_FK" tableName="USER_ATTRIBUTE_VERIFICATION">
             <column name="USER_ID"/>
         </createIndex>
     </changeSet>
-    <changeSet author="liquibase (generated)" id="1723549209743-3">
-        <addForeignKeyConstraint baseColumnNames="USER_ID" baseTableName="USER_ATTRIBUTE_VERIFICATION" constraintName="USER_ID_FK" deferrable="false" initiallyDeferred="false" onDelete="CASCADE" onUpdate="CASCADE" referencedColumnNames="ID" referencedTableName="USER_ENTITY" validate="true"/>
+    <changeSet author="liquibase (generated)" id="20241104-3">
+        <addForeignKeyConstraint baseColumnNames="USER_ID" baseTableName="USER_ATTRIBUTE_VERIFICATION" constraintName="USER_ATTRIBUTE_VERIFICATION_FK_USER_ID" deferrable="false" initiallyDeferred="false" onDelete="CASCADE" onUpdate="CASCADE" referencedColumnNames="ID" referencedTableName="USER_ENTITY" validate="true"/>
     </changeSet>
 </databaseChangeLog>

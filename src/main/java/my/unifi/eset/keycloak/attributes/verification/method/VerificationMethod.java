@@ -19,7 +19,7 @@ public interface VerificationMethod {
      * @return The VerificationChallenge object to be referred to verify
      * response later
      */
-    public VerificationChallenge initiate(UserAttributeEntity uae, UPAttribute upa);
+    public VerificationChallenge initiate(UserAttributeEntity uae, UPAttribute upa) throws Exception;
 
     /**
      * Verify if the challenge response that user provides matches the

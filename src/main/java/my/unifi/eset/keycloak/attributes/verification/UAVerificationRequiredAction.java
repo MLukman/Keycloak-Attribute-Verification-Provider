@@ -10,6 +10,7 @@ import my.unifi.eset.keycloak.attributes.verification.jpa.UAVerificationStatus;
 import my.unifi.eset.keycloak.attributes.verification.jpa.UAVerificationUtil;
 import my.unifi.eset.keycloak.attributes.verification.method.VerificationChallenge;
 import my.unifi.eset.keycloak.attributes.verification.method.VerificationMethod;
+import org.jboss.logging.Logger;
 import org.keycloak.authentication.InitiatedActionSupport;
 import org.keycloak.authentication.RequiredActionContext;
 import org.keycloak.authentication.RequiredActionProvider;
@@ -25,6 +26,8 @@ public class UAVerificationRequiredAction implements RequiredActionProvider {
     KeycloakSession session;
     EntityManager em;
     UAVerificationUtil util;
+
+    private static final Logger logger = Logger.getLogger(UAVerificationRequiredAction.class);
 
     public UAVerificationRequiredAction(KeycloakSession session) {
         this.session = session;
@@ -78,40 +81,52 @@ public class UAVerificationRequiredAction implements RequiredActionProvider {
         UPAttribute upa = UAVerificationValidatorProvider.getUPAttribute(session, uav.getAttributeName());
         VerificationMethod method = UAVerificationValidatorProvider.getVerificationMethod(session, uav.getAttributeName());
         VerificationChallenge generatedChallengeValue = null;
-        if (method != null && (generatedChallengeValue = method.initiate(uav.getAttributeEntity(), upa)) != null) {
-            try {
-                uav.setChallengeValue(new ObjectMapper().writeValueAsString(generatedChallengeValue));
-                uav.setStatus(UAVerificationStatus.IN_PROGRESS);
-            } catch (JsonProcessingException ex) {
+        try {
+            if (method != null) {
+                debug("GENERATE_CHALLENGE", "Started", uav, method);
+                if ((generatedChallengeValue = method.initiate(uav.getAttributeEntity(), upa)) != null) {
+                    debug("GENERATE_CHALLENGE", "Success", uav, method);
+                    uav.setChallengeValue(new ObjectMapper().writeValueAsString(generatedChallengeValue));
+                    uav.setStatus(UAVerificationStatus.IN_PROGRESS);
+                }
+            }
+            if (generatedChallengeValue == null) {
+                debug("GENERATE_CHALLENGE", "Failure", uav, method);
                 rac.getAuthenticationSession().setAuthNote("error", "Unable to generate & send verification challenge. Please click cancel and try again.");
             }
-        } else {
+        } catch (Exception ex) {
+            logger.error(String.format("Unable to generate & send verification challenge for attribute %s of user %s using method %s", uav.getAttributeName(), uav.getUser().getUsername(), method != null ? method.getClass().getName() : "<Unknown>"), ex);
             rac.getAuthenticationSession().setAuthNote("error", "Unable to generate & send verification challenge. Please click cancel and try again.");
         }
         prepareForm(rac, uav);
     }
 
     protected void verifyChallengeResponse(RequiredActionContext rac, UAVerificationEntity uav, String challengeResponse) {
+        String attributeName = uav.getAttributeName();
+        VerificationMethod method = UAVerificationValidatorProvider.getVerificationMethod(session, attributeName);
+        if (method == null) {
+            util.cleanupAttributeUAVerificationEntities(uav.getUser(), attributeName);
+            rac.success();
+            return;
+        }
         try {
-            String attributeName = uav.getAttributeName();
-            VerificationMethod method = UAVerificationValidatorProvider.getVerificationMethod(session, attributeName);
-            if (method == null) {
-                util.cleanupAttributeUAVerificationEntities(uav.getUser(), attributeName);
-                rac.success();
-                return;
-            }
+            debug("VERIFY_RESPONSE", "Started", uav, method);
             if (method.verifyResponse(challengeResponse, new ObjectMapper().readValue(uav.getChallengeValue(), method.getVerificationChallengeClass()))) {
+                debug("VERIFY_RESPONSE", "Success", uav, method);
                 uav.setStatus(UAVerificationStatus.SUCCESS);
                 rac.getUser().setSingleAttribute(uav.getResultAttributeName(), Long.toString(new Date().getTime()));
                 // fetch next attribute that is pending verification
                 uav = util.getPendingVerificationEntity(uav.getUser());
             } else {
+                debug("VERIFY_RESPONSE", "Failure", uav, method);
                 rac.getAuthenticationSession().setAuthNote("error", "Invalid challenge value");
             }
         } catch (JsonProcessingException ex) {
             rac.getAuthenticationSession().setAuthNote("error", "Failed to fetch the generated challenge value");
+            logger.errorf(ex, "Failed to verify verification challenge response for attribute %s of user %s using method %s", attributeName, uav.getUser().getUsername(), method.getClass().getName());
         } catch (Exception ex) {
             rac.getAuthenticationSession().setAuthNote("error", ex.getMessage());
+            logger.errorf(ex, "Failed to verify verification challenge response for attribute %s of user %s using method %s", attributeName, uav.getUser().getUsername(), method.getClass().getName());
         }
 
         if (uav == null) {
@@ -138,6 +153,7 @@ public class UAVerificationRequiredAction implements RequiredActionProvider {
         response.setAttribute("challengeError", rac.getAuthenticationSession().getAuthNote("error"));
         rac.challenge(response.createForm("attribute_verifier.ftl"));
         rac.getAuthenticationSession().removeAuthNote("error");
+        debug("CHALLENGE_FORM", "Displayed", uav, null);
     }
 
     String generateChallengeMessage(UAVerificationEntity uav, UPAttribute upa) {
@@ -149,6 +165,14 @@ public class UAVerificationRequiredAction implements RequiredActionProvider {
 
     @Override
     public void close() {
+    }
+
+    void debug(String event, String status, UAVerificationEntity uav, VerificationMethod method) {
+        if (method != null) {
+            logger.debugf("User: %s, Attribute: %s, Method %s, Event: %s, Status: %s", uav.getUser().getUsername(), uav.getAttributeName(), method.getClass().getName(), event, status);
+        } else {
+            logger.debugf("User: %s, Attribute: %s, Event: %s, Status: %s", uav.getUser().getUsername(), uav.getAttributeName(), event, status);
+        }
     }
 
 }
